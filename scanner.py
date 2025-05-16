@@ -3,6 +3,7 @@ import threading
 import json
 import argparse
 import requests
+import datetime
 
 KNOWN_SERVICES = {
     21: "FTP",
@@ -27,11 +28,19 @@ def detect_vulnerabilities(banner):
         },
         "ssh": {
             "OpenSSH 7.2p2": "CVE-2016-0777 - Private key leakage via roaming",
+            "OpenSSh 8.2": "CVE-2020-14145 - Information disclosure vulnerability"
         },
         "http": {
             "Apache 2.4.49": "CVE-2021-41773 - Path traversal and code execution",
             "Apache 2.4.50": "CVE-2021-42013 - RCE",
             "nginx 1.10.0": "CVE-2016-4450 - Buffer overflow via header",
+            "nginx 1.18.0": "CVE-2021-23017 - 1-byte memory overwrite in resolver"
+        },
+        "mysql":{
+            "MySQL 5.5.20": "CVE-2012-2122 - Authentication bypass"
+        },
+        "telnet": {
+            "NTLM Telnet Server": "CVE-2019-10149 - Command injection email address"
         }
     }
 
@@ -54,17 +63,29 @@ def get_banner(ip, port):
             s.sendall(b"Get / HTTP/1.0\r\n\r\n")
         elif port == 25:
             s.sendall(b"HELO example.com\r\n")
+        elif port in [21, 22]:
+            pass
+        elif port == 110:
+            s.sendall(b"QUIT\r\n")
+        elif port == 143:
+            s.sendall(b". CAPABILITY\r\n")
+        elif port == 443:
+            banner = "Enrypted connection (HTTPS) - banner unavailable"
+            s.close()
+            return banner
 
-        banner = s.recv(1024).decode(errors='ignore').strip()        
+        try:
+            banner = s.recv(1024).decode(errors='ignore').strip()
+        except Exception as recv_error:
+            banner = f"Recv error: {str(recv_error)}"
+
         s.close()
         return banner if banner else "Banner not retrieved"
     
     except socket.timeout:
-        return f"Connection error: timeout for {ip}:{port}"
-    except socket.gaierror:
-        return f"Domain resolution error for {ip}:{port}"
+        return f"Timeout on {ip}:{port}"
     except Exception as e:
-        return f"Error retrieving banner: {str(e)}"
+        return f"Banner error: {str(e)}"
     
 # TCP port scanner with vulnerability detection
 def scan_tcp(ip, port, results):
@@ -98,8 +119,15 @@ def scan_udp(ip, port, results):
         s.sendto(b"",(ip, port))
         try:
             data, _ = s.recvfrom(1024)
-            service = KNOWN_SERVICES.get(port, "Unknown")
             banner = data.decode(errors="ignore").strip() or "UDP response without banner"
+            if port == 53 and b"\x81\x80" in data:
+                banner += " (DNS response)"
+            elif port == 123:
+                banner += " (NTP maybe)"
+            elif port == 161:
+                banner += " (SNMP maybe)"
+
+            service = KNOWN_SERVICES.get(port, "Unknown")
             vulnerability = detect_vulnerabilities(banner)
             vuln_status = vulnerability if vulnerability else "No known vulnerability"
             print(f"[UDP] {ip}:{port} open ({service}) | {banner} | {vuln_status}")
@@ -212,6 +240,10 @@ def main():
             args.start_port = int(input("Enter the starting port: "))
         if args.end_port is None:
             args.end_port = int(input("Enter the ending port: "))
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n scanned IP : {args.ip}")
+    print(f"scan's date and hour : {timestamp}\n")
 
     # Port validation
     if not (1 <= args.start_port <= 65535):
