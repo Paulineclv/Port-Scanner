@@ -119,6 +119,6 @@ Fork the repo, open an issue, or submit a pull request!
 
 ---
 
-## 🧠 Note
+##  Note
 
 This tool is for educational or ethical testing purposes only. Always ensure you have permission to scan a target.
