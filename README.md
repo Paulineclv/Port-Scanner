@@ -1,10 +1,10 @@
-# 🔍 Port Scanner with Vulnerability Detection
+#  Port Scanner with Vulnerability Detection
 
 This Python-based port scanner allows scanning a range of TCP and UDP ports on a target IP address. It also includes **banner grabbing** and **basic vulnerability detection** using known CVEs. The tool can be used via **command-line** or a **user-friendly interactive menu**.
 
 ---
 
-## ✨ Features
+##  Features
 
 -   **TCP and UDP support**: Scan TCP, UDP, or both protocols.
 -   **Banner grabbing**: Attempts to retrieve banners from open ports (e.g., HTTP, FTP, SMTP).
@@ -17,7 +17,7 @@ This Python-based port scanner allows scanning a range of TCP and UDP ports on a
 
 ---
 
-## 🛡️ Known Vulnerabilities Detected
+##  Known Vulnerabilities Detected
 
 The scanner currently checks for known vulnerabilities based on service banners. Examples include:
 
@@ -29,7 +29,7 @@ The scanner currently checks for known vulnerabilities based on service banners.
 
 ---
 
-## 💻 Installation
+##  Installation
 
 ```bash
 git clone https://github.com/Paulineclv/Port-Scanner.git
@@ -38,7 +38,7 @@ cd Port-Scanner
 
 ---
 
-## 🧪 Usage
+##  Usage
 
 ### Option 1: Command-Line Mode
 
@@ -79,7 +79,7 @@ The program will then ask for the IP address and port range.
 
 ---
 
-## 📄 Output Format
+##  Output Format
 
 Results are shown in the terminal and optionally saved in JSON format:
 
